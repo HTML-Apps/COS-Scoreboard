@@ -120,7 +120,7 @@
 
     <div id="notesModal" class="modal-overlay d-none">
         <div class="modal" style="text-align: left; max-height: 80vh; display: flex; flex-direction: column;">
-            <h2 id="notesModalTitle" style="text-align: center; margin-top: 0;">Notizen</h2>
+            <h2 id="notesModalTitle" style="text-align: center; margin-top: 0;">Kommentare</h2>
             <div id="notesModalContent" style="overflow-y: auto; flex: 1; margin-bottom: 15px;">
                 </div>
             <button class="primary" onclick="closeNotesModal()">Schließen</button>
@@ -156,7 +156,7 @@
             <div id="starContainer"></div>
 
             <div class="form-group">
-                <textarea style="height: 70px;" id="notesInput" rows="3" placeholder="Notizen..."></textarea>
+                <textarea style="height: 70px;" id="notesInput" rows="3" placeholder="Kommentar..."></textarea>
             </div>
 
             <div class="overall-score" id="overallScoreDisplay">Gesamtbewertung: 0.0 / 5.0</div>
@@ -492,7 +492,7 @@
             // 1. Modal vorbereiten und anzeigen
             document.getElementById('notesModalTitle').innerText = varietyName;
             const content = document.getElementById('notesModalContent');
-            content.innerHTML = '<p style="text-align:center;">Lade Notizen...</p>';
+            content.innerHTML = '<p style="text-align:center;">Lade Kommentare...</p>';
             document.getElementById('notesModal').classList.remove('d-none');
 
             // 2. Notizen aus der Datenbank laden
@@ -506,13 +506,13 @@
                 .order('overall', { ascending: false }); // Beste Bewertungen zuerst
 
             if (error) {
-                console.error("Fehler beim Laden der Notizen:", error);
+                console.error("Fehler beim Laden der Kommentare:", error);
                 content.innerHTML = '<p style="text-align:center; color:red;">Fehler beim Laden.</p>';
                 return;
             }
 
             if (!data || data.length === 0) {
-                content.innerHTML = '<p style="text-align:center;">Noch keine Text-Notizen zu dieser Sorte vorhanden.</p>';
+                content.innerHTML = '<p style="text-align:center;">Noch keine Kommentare zu dieser Sorte vorhanden.</p>';
                 return;
             }
 
