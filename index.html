@@ -572,7 +572,7 @@
             container.innerHTML = ranking.length ? '' : '<p>Noch keine Daten...</p>';
             ranking.forEach((item, i) => {
                 // Kaffee / Espresso Tag Icon generieren
-                const typeIcon = item.type === 'Kaffee' ? '☕ Kaffee' : '🥤 Espresso';
+                const typeIcon = item.type === 'Kaffee' ? '☕ Kaffee' : '🍵 Espresso';
                 
                 container.innerHTML += `
                     <div class="leaderboard-item" onclick="openNotesModal('${item.id}', '${item.name}')" style="flex-direction: column; gap: 5px; cursor: pointer;">
