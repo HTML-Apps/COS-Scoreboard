@@ -10,7 +10,7 @@
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        /* --- CSS VARIABLES & THEMES --- OmSPwCQUtVDnCcNp https://supabase.com/dashboard/project/qmgmvweupxffxexlovir/editor/17544?schema=public */
+        /* --- CSS VARIABLES & THEMES --- */
         :root {
             --bg-color: #f4f4f9;
             --surface-color: #ffffff;
@@ -39,8 +39,13 @@
             display: flex; justify-content: center; transition: background-color 0.3s;
         }
         
-        /* App Container (Portrait Mode Constraint) */
-        #app { width: 100%; min-height: 100vh; background-color: var(--surface-color); padding: 20px; box-shadow: 0 0 15px rgba(0,0,0,0.1); }
+        /* App Container */
+        #app { 
+            width: 100%; min-height: 100vh; background-color: var(--surface-color); padding: 20px; box-shadow: 0 0 15px rgba(0,0,0,0.1); 
+            overflow-x: hidden; /* Verhindert horizontales Wackeln bei der Slide-Animation */
+            touch-action: pan-y; 
+            user-select: none;   
+        }
 
         /* --- HEADER --- */
         header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; padding-bottom: 10px; }
@@ -68,17 +73,14 @@
             width: 100%; padding: 15px; background: var(--primary-color); color: white; 
             border: none; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 10px;
         }
-        .add-row { display: flex; gap: 10px; margin-top: 10px; align-items: stretch; }
-        .add-row input { flex: 1; }
-        .add-row button { padding: 0 15px; background: var(--text-muted); color: white; border: none; border-radius: 8px; cursor: pointer; }
 
         /* --- STARS --- */
         .rating-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 7px; padding: 8px; background: var(--bg-color); border-radius: 8px; }
-        .stars { display: flex; gap: 5px; font-size: 24px; /*cursor: pointer;*/ color: var(--star-inactive); }
+        .stars { display: flex; gap: 5px; font-size: 24px; color: var(--star-inactive); }
         .star.active { color: var(--star-active); }
         .overall-score { font-size: 18px; font-weight: bold; color: var(--primary-color); text-align: center; margin: 15px 0; }
 
-        /* --- MODALS (Overlays) --- */
+        /* --- MODALS --- */
         .modal-overlay { 
             position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.7); 
             display: flex; justify-content: center; align-items: center; z-index: 1000;
@@ -87,7 +89,6 @@
         .d-none { display: none !important; }
 
         #willkommen { top: 80px; position: absolute;}
-
         #verstanden { top: 80px; position: absolute;}
         
         /* --- TEAM TAB --- */
@@ -95,11 +96,23 @@
         .leaderboard-item:last-child { border-bottom: none; }
         .rank { font-weight: bold; color: var(--primary-color); margin-right: 15px; }
 
-        #app {
-            touch-action: pan-y; /* Erlaubt vertikales Scrollen, blockiert aber browser-eigenes horizontales Swipen */
-            user-select: none;   /* Verhindert, dass beim Swipen Text markiert wird <p style="font-weight: bold; font-size: 14px;">Bewertung:</p>*/
-        }
+        /* --- ANIMATIONS --- */
+        .slide-in-right { animation: slideInRight 0.3s forwards ease-out; }
+        .slide-in-left { animation: slideInLeft 0.3s forwards ease-out; }
+        .fade-in { animation: fadeIn 0.3s forwards ease-out; }
 
+        @keyframes slideInRight {
+            0% { transform: translateX(30%); opacity: 0; }
+            100% { transform: translateX(0); opacity: 1; }
+        }
+        @keyframes slideInLeft {
+            0% { transform: translateX(-30%); opacity: 0; }
+            100% { transform: translateX(0); opacity: 1; }
+        }
+        @keyframes fadeIn {
+            0% { opacity: 0; }
+            100% { opacity: 1; }
+        }
     </style>
 </head>
 <body>
@@ -116,12 +129,10 @@
     <div id="hintModal" class="modal-overlay d-none">
         <div id="verstanden" class="modal" style="text-align: left;">
             <h2 style="text-align: center;">So funktioniert's:</h2>
-
                 <p><strong>Schritt 1:</strong> Wähle im Reiter "Kaffee" oder "Espresso" zur Bewertung.</p>
                 <p><strong>Schritt 2:</strong> Wähle eine Sorte aus dem Dropdown oder füge eine neue "+" hinzu.</p>
                 <p><strong>Schritt 3:</strong> Sterne vergeben (Stärke, Geschmack, Aroma etc.) & speichern.</p>
                 <p><strong>Schritt 4:</strong> Checke das Team-Ranking im Reiter "Team" oder deine persönlichen Knaller unter "Favoriten"!</p>
-
             <button class="primary" onclick="closeHint()">Verstanden 🤌🏻</button>
         </div>
     </div>
@@ -129,8 +140,7 @@
     <div id="notesModal" class="modal-overlay d-none">
         <div class="modal" style="text-align: left; max-height: 80vh; display: flex; flex-direction: column;">
             <h2 id="notesModalTitle" style="text-align: center; margin-top: 0;">Kommentare</h2>
-            <div id="notesModalContent" style="overflow-y: auto; flex: 1; margin-bottom: 15px;">
-                </div>
+            <div id="notesModalContent" style="overflow-y: auto; flex: 1; margin-bottom: 15px;"></div>
             <button class="primary" onclick="closeNotesModal()">Schließen</button>
         </div>
     </div>
@@ -159,8 +169,6 @@
                 </div>
             </div>
             
-            
-
             <div id="starContainer"></div>
 
             <div class="form-group">
@@ -185,11 +193,8 @@
            1. INITIALISIERUNG & SETUP
            ========================================= */
         
-        // --- HIER DEINE SUPABASE KEYS EINTRAGEN ---
         const S_URL = 'https://qmgmvweupxffxexlovir.supabase.co';
         const S_KEY = 'sb_publishable_efpVSR2dJIB6qZsa-sWuLw_AbBae7cs';
-        
-        // Wir nennen die Variable "sb", um Konflikte mit dem globalen "supabase" Objekt zu vermeiden
         const sb = window.supabase.createClient(S_URL, S_KEY);
     
         let currentUser = localStorage.getItem('username');
@@ -199,7 +204,11 @@
         let currentType = 'Kaffee'; 
         
         let currentRating = { strength: 0, taste: 0, aroma: 0, mundgefühl: 0, acidity: 0, aftertaste: 0 };
-        let currentRatingDbId = null; // Speichert die ID einer bereits existierenden Bewertung
+        let currentRatingDbId = null; 
+
+        // Reihenfolge der Tabs für die Wisch- und Animationslogik
+        const tabOrder = ['kaffee', 'espresso', 'personal', 'team'];
+        let currentTabIndex = 0;
 
         const categories = [
             { id: 'strength', label: 'Stärke' },
@@ -246,57 +255,29 @@
     
         async function saveUsername() {
             const name = document.getElementById('usernameInput').value.trim();
-            if (!name) {
-                alert("Bitte gib einen Namen ein.");
-                return;
-            }
+            if (!name) return alert("Bitte gib einen Namen ein.");
 
-            // 1. Prüfen, ob der Nutzer bereits in der Datenbank existiert
-            // maybeSingle() verhindert einen Fehler-Absturz, wenn 0 Ergebnisse zurückkommen
             const { data: existingUser, error: fetchError } = await sb
-                .from('profiles')
-                .select('id, username')
-                .eq('username', name)
-                .maybeSingle();
+                .from('profiles').select('id, username').eq('username', name).maybeSingle();
 
-            if (fetchError) {
-                console.error("Datenbankfehler:", fetchError);
-                alert("Fehler bei der Verbindung zur Datenbank.");
-                return;
-            }
+            if (fetchError) return alert("Fehler bei der Verbindung zur Datenbank.");
 
             if (existingUser) {
-                // User existiert bereits -> Wir loggen ihn wieder ein!
                 currentUser = existingUser.username;
                 currentUserId = existingUser.id;
-                // Optionales Feedback für den User:
-                // alert(`Willkommen zurück, ${currentUser}!`); 
             } else {
-                // User existiert noch nicht -> Wir legen ihn neu an
                 const { data: newUser, error: insertError } = await sb
-                    .from('profiles')
-                    .insert([{ username: name }])
-                    .select()
-                    .single();
+                    .from('profiles').insert([{ username: name }]).select().single();
 
-                if (insertError) {
-                    console.error("Fehler beim Anlegen:", insertError);
-                    alert("Fehler! Vielleicht hat genau in dieser Sekunde jemand den Namen vergeben.");
-                    return;
-                }
-
+                if (insertError) return alert("Fehler! Vielleicht hat genau in dieser Sekunde jemand den Namen vergeben.");
                 currentUser = newUser.username;
                 currentUserId = newUser.id;
             }
 
-            // 2. Daten lokal im Browser speichern, damit der User eingeloggt bleibt
             localStorage.setItem('username', currentUser);
             localStorage.setItem('userId', currentUserId);
-
-            // 3. UI updaten (Modals umschalten)
             document.getElementById('loginModal').classList.add('d-none');
             
-            // Prüfen, ob der Hint schon gesehen wurde, um ihn nicht nervig oft zu zeigen
             if (!localStorage.getItem('hintsSeen')) {
                 document.getElementById('hintModal').classList.remove('d-none');
             }
@@ -308,22 +289,42 @@
         }
     
         /* =========================================
-           3. NAVIGATION & UI
+           3. NAVIGATION & UI MIT ANIMATION
            ========================================= */
         window.switchTab = function(tab, event) {
             document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
             if(event) event.target.classList.add('active');
-    
+
+            // Richtungslogik für Animation berechnen
+            let targetIndex = tabOrder.indexOf(tab);
+            let animClass = 'fade-in'; 
+            if (targetIndex > currentTabIndex) animClass = 'slide-in-right';
+            else if (targetIndex < currentTabIndex) animClass = 'slide-in-left';
+            currentTabIndex = targetIndex;
+
+            const ratingSec = document.getElementById('ratingSection');
+            const teamSec = document.getElementById('teamSection');
+
+            // Animationen zurücksetzen
+            ratingSec.classList.remove('slide-in-left', 'slide-in-right', 'fade-in');
+            teamSec.classList.remove('slide-in-left', 'slide-in-right', 'fade-in');
+            
+            // Browser zwingen, das Entfernen der Klassen zu bemerken (Reflow)
+            void ratingSec.offsetWidth; 
+            void teamSec.offsetWidth;   
+
             if(tab === 'team' || tab === 'personal') {
-                document.getElementById('ratingSection').style.display = 'none';
-                document.getElementById('teamSection').style.display = 'block';
-                // Überschrift anpassen
+                ratingSec.style.display = 'none';
+                teamSec.style.display = 'block';
+                teamSec.classList.add(animClass);
+
                 document.querySelector('#teamSection h2').innerText = tab === 'team' ? '🏆 Team-Bestenliste' : '🏆 Meine Favoriten';
-                
-                loadLeaderboardData(tab); // Aufruf der neuen Funktion
+                loadLeaderboardData(tab); 
             } else {
-                document.getElementById('ratingSection').style.display = 'block';
-                document.getElementById('teamSection').style.display = 'none';
+                ratingSec.style.display = 'block';
+                teamSec.style.display = 'none';
+                ratingSec.classList.add(animClass);
+
                 currentType = tab === 'kaffee' ? 'Kaffee' : 'Espresso';
                 document.getElementById('typeLabel').innerText = `${currentType}sorte auswählen:`;
                 fetchVarieties();
@@ -368,7 +369,7 @@
         }
 
         function resetForm() {
-            currentRatingDbId = null; // NEU: ID zurücksetzen
+            currentRatingDbId = null; 
             currentRating = { strength: 0, taste: 0, aroma: 0, mundgefühl: 0, acidity: 0, aftertaste: 0 };
             document.querySelectorAll('.star').forEach(s => s.classList.remove('active'));
             document.getElementById('overallScoreDisplay').innerText = `Gesamtbewertung: 0.0 / 5.0`;
@@ -376,18 +377,12 @@
         }
     
         /* =========================================
-           4. DATENBANK AKTIONEN (mit "sb")
+           4. DATENBANK AKTIONEN
            ========================================= */
         async function fetchVarieties() {
             const select = document.getElementById('varietySelect');
             select.innerHTML = '<option>Lade...</option>';
-    
-            const { data, error } = await sb
-                .from('varieties')
-                .select('*')
-                .eq('type', currentType)
-                .order('name', { ascending: true });
-    
+            const { data, error } = await sb.from('varieties').select('*').eq('type', currentType).order('name', { ascending: true });
             if (error) return console.error(error);
     
             select.innerHTML = '<option value="" disabled selected>Bitte wählen...</option>';
@@ -401,38 +396,23 @@
     
         async function addNewVarietyViaPrompt() {
             const name = prompt(`Neue ${currentType}sorte hinzufügen:\nBitte Namen eingeben:`);
-            if (!name || name.trim() === '') return; // Abbrechen, wenn nichts eingegeben wurde
+            if (!name || name.trim() === '') return; 
 
             let price = prompt("Preis pro kg in € (Optional, z.B. 25.50):");
-            // Komma in Punkt umwandeln, falls der User ein Komma tippt
             price = price ? parseFloat(price.replace(',', '.')) : null;
 
-            const { data, error } = await sb
-                .from('varieties')
-                .insert([{ type: currentType, name: name.trim(), price_per_kg: price }])
-                .select();
-
-            if (error) {
-                alert("Fehler beim Speichern der Sorte!");
-            } else {
-                fetchVarieties(); // Liste direkt neu laden
-            }
+            const { data, error } = await sb.from('varieties').insert([{ type: currentType, name: name.trim(), price_per_kg: price }]).select();
+            if (error) alert("Fehler beim Speichern der Sorte!");
+            else fetchVarieties(); 
         }
 
         async function checkExistingRating() {
             const varietyId = document.getElementById('varietySelect').value;
             if (!varietyId) return resetForm();
 
-            // Suchen, ob der Nutzer hier schon eine Bewertung hat
-            const { data, error } = await sb
-                .from('ratings')
-                .select('*')
-                .eq('variety_id', varietyId)
-                .eq('user_id', currentUserId)
-                .maybeSingle();
+            const { data, error } = await sb.from('ratings').select('*').eq('variety_id', varietyId).eq('user_id', currentUserId).maybeSingle();
 
             if (data) {
-                // Bewertung existiert! Werte ins Formular laden
                 currentRatingDbId = data.id; 
                 currentRating = { 
                     strength: data.strength, taste: data.taste, aroma: data.aroma, 
@@ -440,7 +420,6 @@
                 };
                 document.getElementById('notesInput').value = data.notes || '';
                 
-                // Sterne UI updaten
                 const rows = document.getElementById('starContainer').children;
                 categories.forEach((cat, index) => {
                     const starsDiv = rows[index].querySelector('.stars');
@@ -451,7 +430,6 @@
                 });
                 updateOverallScore();
             } else {
-                // Keine Bewertung gefunden -> Formular leeren
                 resetForm();
             }
         }
@@ -477,11 +455,9 @@
 
             let error;
             if (currentRatingDbId) {
-                // UPDATE: Wenn wir schon eine ID haben, überschreiben wir den alten Eintrag
                 const res = await sb.from('ratings').update(payload).eq('id', currentRatingDbId);
                 error = res.error;
             } else {
-                // INSERT: Neue Bewertung anlegen
                 const res = await sb.from('ratings').insert([payload]);
                 error = res.error;
             }
@@ -491,40 +467,22 @@
                 alert("Fehler beim Speichern!");
             } else {
                 alert(currentRatingDbId ? "Bewertung aktualisiert!" : "Bewertung gesichert!");
-                checkExistingRating(); // Lädt die frischen Daten neu ein
+                checkExistingRating(); 
             }
         }
 
-        // --- NEU: Notizen Modal Logik ---
         async function openNotesModal(varietyId, varietyName) {
-            // 1. Modal vorbereiten und anzeigen
             document.getElementById('notesModalTitle').innerText = varietyName;
             const content = document.getElementById('notesModalContent');
             content.innerHTML = '<p style="text-align:center;">Lade Kommentare...</p>';
             document.getElementById('notesModal').classList.remove('d-none');
 
-            // 2. Notizen aus der Datenbank laden
-            // Wir filtern leere Notizen heraus (.neq und .not)
-            const { data, error } = await sb
-                .from('ratings')
-                .select('username, notes, overall')
-                .eq('variety_id', varietyId)
-                .neq('notes', '')
-                .not('notes', 'is', null)
-                .order('overall', { ascending: false }); // Beste Bewertungen zuerst
+            const { data, error } = await sb.from('ratings').select('username, notes, overall')
+                .eq('variety_id', varietyId).neq('notes', '').not('notes', 'is', null).order('overall', { ascending: false }); 
 
-            if (error) {
-                console.error("Fehler beim Laden der Kommentare:", error);
-                content.innerHTML = '<p style="text-align:center; color:red;">Fehler beim Laden.</p>';
-                return;
-            }
+            if (error) return content.innerHTML = '<p style="text-align:center; color:red;">Fehler beim Laden.</p>';
+            if (!data || data.length === 0) return content.innerHTML = '<p style="text-align:center;">Noch keine Kommentare zu dieser Sorte vorhanden.</p>';
 
-            if (!data || data.length === 0) {
-                content.innerHTML = '<p style="text-align:center;">Noch keine Kommentare zu dieser Sorte vorhanden.</p>';
-                return;
-            }
-
-            // 3. Notizen als HTML zusammenbauen
             let html = '';
             data.forEach(rating => {
                 html += `
@@ -534,8 +492,7 @@
                             <span style="color: var(--star-active); font-weight: bold;">★ ${rating.overall}</span>
                         </div>
                         <div style="font-size: 14px; color: var(--text-color); white-space: pre-wrap;">${rating.notes}</div>
-                    </div>
-                `;
+                    </div>`;
             });
             content.innerHTML = html;
         }
@@ -550,16 +507,10 @@
 
             const { data: varieties } = await sb.from('varieties').select('id, name, type');
             
-            // Grund-Abfrage für Ratings
             let query = sb.from('ratings').select('variety_id, overall');
-            
-            // Wenn "Persönlich", filtern wir nur die eigenen Ratings!
-            if (mode === 'personal') {
-                query = query.eq('user_id', currentUserId);
-            }
+            if (mode === 'personal') query = query.eq('user_id', currentUserId);
             
             const { data: ratings } = await query;
-    
             if(!varieties || !ratings) return;
     
             let ranking = varieties.map(v => {
@@ -571,9 +522,7 @@
     
             container.innerHTML = ranking.length ? '' : '<p>Noch keine Daten...</p>';
             ranking.forEach((item, i) => {
-                // Kaffee / Espresso Tag Icon generieren
                 const typeIcon = item.type === 'Kaffee' ? '☕ Kaffee' : '🍵 Espresso';
-                
                 container.innerHTML += `
                     <div class="leaderboard-item" onclick="openNotesModal('${item.id}', '${item.name}')" style="flex-direction: column; gap: 5px; cursor: pointer;">
                         <div style="display: flex; justify-content: space-between;">
@@ -593,50 +542,30 @@
         let touchstartX = 0;
         let touchendX = 0;
 
-        // Die Tabs in der Reihenfolge, wie sie im HTML stehen
-        const tabOrder = ['kaffee', 'espresso', 'personal', 'team'];
-
         function handleGesture() {
-            const swipeThreshold = 70; // Mindestdistanz in Pixeln für einen Swipe
+            const swipeThreshold = 70; 
             const diff = touchendX - touchstartX;
 
-            // Aktuellen Tab-Index finden
-            const currentTabBtn = document.querySelector('.tab-btn.active');
-            // Wir extrahieren den Tab-Namen aus dem onclick-Attribut
-            const currentTabName = currentTabBtn.getAttribute('onclick').match(/'([^']+)'/)[1];
-            let currentIndex = tabOrder.indexOf(currentTabName);
-
             if (diff < -swipeThreshold) {
-                // Swipe nach LINKS -> Nächster Tab
-                if (currentIndex < tabOrder.length - 1) {
-                    const nextTab = tabOrder[currentIndex + 1];
-                    // Wir suchen den Button im DOM, um das Event-Objekt für switchTab zu simulieren
-                    const nextBtn = document.querySelectorAll('.tab-btn')[currentIndex + 1];
+                if (currentTabIndex < tabOrder.length - 1) {
+                    const nextTab = tabOrder[currentTabIndex + 1];
+                    const nextBtn = document.querySelectorAll('.tab-btn')[currentTabIndex + 1];
                     switchTab(nextTab, { target: nextBtn });
                 }
             }
 
             if (diff > swipeThreshold) {
-                // Swipe nach RECHTS -> Vorheriger Tab
-                if (currentIndex > 0) {
-                    const prevTab = tabOrder[currentIndex - 1];
-                    const prevBtn = document.querySelectorAll('.tab-btn')[currentIndex - 1];
+                if (currentTabIndex > 0) {
+                    const prevTab = tabOrder[currentTabIndex - 1];
+                    const prevBtn = document.querySelectorAll('.tab-btn')[currentTabIndex - 1];
                     switchTab(prevTab, { target: prevBtn });
                 }
             }
         }
 
-        // Event Listener an das App-Container binden
         const appContainer = document.getElementById('app');
-
-        appContainer.addEventListener('touchstart', e => {
-            touchstartX = e.changedTouches[0].screenX;
-        }, {passive: true});
-
-        appContainer.addEventListener('touchend', e => {
-            touchendX = e.changedTouches[0].screenX;
-            handleGesture();
-        }, {passive: true});
+        appContainer.addEventListener('touchstart', e => { touchstartX = e.changedTouches[0].screenX; }, {passive: true});
+        appContainer.addEventListener('touchend', e => { touchendX = e.changedTouches[0].screenX; handleGesture(); }, {passive: true});
 
     </script>
 </body>
