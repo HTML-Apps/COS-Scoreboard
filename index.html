@@ -168,6 +168,8 @@
         const sb = window.supabase.createClient(S_URL, S_KEY);
     
         let currentUser = localStorage.getItem('username');
+        let currentUserId = localStorage.getItem('userId');
+
         let currentTheme = localStorage.getItem('theme') || 'light';
         let currentType = 'Kaffee'; 
         
@@ -215,12 +217,60 @@
             }
         }
     
-        function saveUsername() {
+        async function saveUsername() {
             const name = document.getElementById('usernameInput').value.trim();
-            if (name) {
-                currentUser = name;
-                localStorage.setItem('username', name);
-                document.getElementById('loginModal').classList.add('d-none');
+            if (!name) {
+                alert("Bitte gib einen Namen ein.");
+                return;
+            }
+
+            // 1. Prüfen, ob der Nutzer bereits in der Datenbank existiert
+            // maybeSingle() verhindert einen Fehler-Absturz, wenn 0 Ergebnisse zurückkommen
+            const { data: existingUser, error: fetchError } = await sb
+                .from('profiles')
+                .select('id, username')
+                .eq('username', name)
+                .maybeSingle();
+
+            if (fetchError) {
+                console.error("Datenbankfehler:", fetchError);
+                alert("Fehler bei der Verbindung zur Datenbank.");
+                return;
+            }
+
+            if (existingUser) {
+                // User existiert bereits -> Wir loggen ihn wieder ein!
+                currentUser = existingUser.username;
+                currentUserId = existingUser.id;
+                // Optionales Feedback für den User:
+                // alert(`Willkommen zurück, ${currentUser}!`); 
+            } else {
+                // User existiert noch nicht -> Wir legen ihn neu an
+                const { data: newUser, error: insertError } = await sb
+                    .from('profiles')
+                    .insert([{ username: name }])
+                    .select()
+                    .single();
+
+                if (insertError) {
+                    console.error("Fehler beim Anlegen:", insertError);
+                    alert("Fehler! Vielleicht hat genau in dieser Sekunde jemand den Namen vergeben.");
+                    return;
+                }
+
+                currentUser = newUser.username;
+                currentUserId = newUser.id;
+            }
+
+            // 2. Daten lokal im Browser speichern, damit der User eingeloggt bleibt
+            localStorage.setItem('username', currentUser);
+            localStorage.setItem('userId', currentUserId);
+
+            // 3. UI updaten (Modals umschalten)
+            document.getElementById('loginModal').classList.add('d-none');
+            
+            // Prüfen, ob der Hint schon gesehen wurde, um ihn nicht nervig oft zu zeigen
+            if (!localStorage.getItem('hintsSeen')) {
                 document.getElementById('hintModal').classList.remove('d-none');
             }
         }
@@ -345,6 +395,7 @@
             const { error } = await sb.from('ratings').insert([{
                 variety_id: varietyId,
                 username: currentUser,
+                user_id: currentUserId,
                 strength: currentRating.strength,
                 taste: currentRating.taste,
                 aroma: currentRating.aroma,
