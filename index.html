@@ -118,6 +118,15 @@
         </div>
     </div>
 
+    <div id="notesModal" class="modal-overlay d-none">
+        <div class="modal" style="text-align: left; max-height: 80vh; display: flex; flex-direction: column;">
+            <h2 id="notesModalTitle" style="text-align: center; margin-top: 0;">Notizen</h2>
+            <div id="notesModalContent" style="overflow-y: auto; flex: 1; margin-bottom: 15px;">
+                </div>
+            <button class="primary" onclick="closeNotesModal()">Schließen</button>
+        </div>
+    </div>
+
     <div id="app">
         <header>
             <h1>COS-Scoreboard</h1>
@@ -477,6 +486,55 @@
                 checkExistingRating(); // Lädt die frischen Daten neu ein
             }
         }
+
+        // --- NEU: Notizen Modal Logik ---
+        async function openNotesModal(varietyId, varietyName) {
+            // 1. Modal vorbereiten und anzeigen
+            document.getElementById('notesModalTitle').innerText = varietyName;
+            const content = document.getElementById('notesModalContent');
+            content.innerHTML = '<p style="text-align:center;">Lade Notizen...</p>';
+            document.getElementById('notesModal').classList.remove('d-none');
+
+            // 2. Notizen aus der Datenbank laden
+            // Wir filtern leere Notizen heraus (.neq und .not)
+            const { data, error } = await sb
+                .from('ratings')
+                .select('username, notes, overall')
+                .eq('variety_id', varietyId)
+                .neq('notes', '')
+                .not('notes', 'is', null)
+                .order('overall', { ascending: false }); // Beste Bewertungen zuerst
+
+            if (error) {
+                console.error("Fehler beim Laden der Notizen:", error);
+                content.innerHTML = '<p style="text-align:center; color:red;">Fehler beim Laden.</p>';
+                return;
+            }
+
+            if (!data || data.length === 0) {
+                content.innerHTML = '<p style="text-align:center;">Noch keine Text-Notizen zu dieser Sorte vorhanden.</p>';
+                return;
+            }
+
+            // 3. Notizen als HTML zusammenbauen
+            let html = '';
+            data.forEach(rating => {
+                html += `
+                    <div style="margin-bottom: 10px; padding: 12px; background: var(--bg-color); border: 1px solid var(--border-color); border-radius: 8px;">
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+                            <strong>${rating.username || 'Unbekannt'}</strong>
+                            <span style="color: var(--star-active); font-weight: bold;">★ ${rating.overall}</span>
+                        </div>
+                        <div style="font-size: 14px; color: var(--text-color); white-space: pre-wrap;">${rating.notes}</div>
+                    </div>
+                `;
+            });
+            content.innerHTML = html;
+        }
+
+        function closeNotesModal() {
+            document.getElementById('notesModal').classList.add('d-none');
+        }
     
         async function loadLeaderboardData(mode) {
             const container = document.getElementById('leaderboardContainer');
@@ -500,7 +558,7 @@
                 const vRatings = ratings.filter(r => r.variety_id === v.id);
                 if(vRatings.length === 0) return null;
                 const avg = vRatings.reduce((a, b) => a + Number(b.overall), 0) / vRatings.length;
-                return { name: v.name, type: v.type, avg: avg, count: vRatings.length };
+                return { id: v.id, name: v.name, type: v.type, avg: avg, count: vRatings.length };
             }).filter(x => x).sort((a, b) => b.avg - a.avg);
     
             container.innerHTML = ranking.length ? '' : '<p>Noch keine Daten...</p>';
@@ -509,7 +567,7 @@
                 const typeIcon = item.type === 'Kaffee' ? '☕ Kaffee' : '🥤 Espresso';
                 
                 container.innerHTML += `
-                    <div class="leaderboard-item" style="flex-direction: column; gap: 5px;">
+                    <div class="leaderboard-item" onclick="openNotesModal('${item.id}', '${item.name}')" style="flex-direction: column; gap: 5px; cursor: pointer;">
                         <div style="display: flex; justify-content: space-between;">
                             <div><span class="rank">#${i+1}</span><strong>${item.name}</strong></div>
                             <div style="color:var(--star-active); font-weight: bold;">★ ${item.avg.toFixed(1)}</div>
