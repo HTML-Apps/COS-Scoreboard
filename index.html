@@ -94,6 +94,12 @@
         .leaderboard-item { display: flex; justify-content: space-between; padding-top: 15px; padding-bottom: 15px; border-bottom: 1px solid var(--border-color); }
         .leaderboard-item:last-child { border-bottom: none; }
         .rank { font-weight: bold; color: var(--primary-color); margin-right: 15px; }
+
+        #app {
+            touch-action: pan-y; /* Erlaubt vertikales Scrollen, blockiert aber browser-eigenes horizontales Swipen */
+            user-select: none;   /* Verhindert, dass beim Swipen Text markiert wird */
+        }
+
     </style>
 </head>
 <body>
@@ -580,6 +586,57 @@
                     </div>`;
             });
         }
+
+        /* =========================================
+        5. SWIPE-GESTEN FÜR TABS
+        ========================================= */
+        let touchstartX = 0;
+        let touchendX = 0;
+
+        // Die Tabs in der Reihenfolge, wie sie im HTML stehen
+        const tabOrder = ['kaffee', 'espresso', 'personal', 'team'];
+
+        function handleGesture() {
+            const swipeThreshold = 70; // Mindestdistanz in Pixeln für einen Swipe
+            const diff = touchendX - touchstartX;
+
+            // Aktuellen Tab-Index finden
+            const currentTabBtn = document.querySelector('.tab-btn.active');
+            // Wir extrahieren den Tab-Namen aus dem onclick-Attribut
+            const currentTabName = currentTabBtn.getAttribute('onclick').match(/'([^']+)'/)[1];
+            let currentIndex = tabOrder.indexOf(currentTabName);
+
+            if (diff < -swipeThreshold) {
+                // Swipe nach LINKS -> Nächster Tab
+                if (currentIndex < tabOrder.length - 1) {
+                    const nextTab = tabOrder[currentIndex + 1];
+                    // Wir suchen den Button im DOM, um das Event-Objekt für switchTab zu simulieren
+                    const nextBtn = document.querySelectorAll('.tab-btn')[currentIndex + 1];
+                    switchTab(nextTab, { target: nextBtn });
+                }
+            }
+
+            if (diff > swipeThreshold) {
+                // Swipe nach RECHTS -> Vorheriger Tab
+                if (currentIndex > 0) {
+                    const prevTab = tabOrder[currentIndex - 1];
+                    const prevBtn = document.querySelectorAll('.tab-btn')[currentIndex - 1];
+                    switchTab(prevTab, { target: prevBtn });
+                }
+            }
+        }
+
+        // Event Listener an das App-Container binden
+        const appContainer = document.getElementById('app');
+
+        appContainer.addEventListener('touchstart', e => {
+            touchstartX = e.changedTouches[0].screenX;
+        }, {passive: true});
+
+        appContainer.addEventListener('touchend', e => {
+            touchendX = e.changedTouches[0].screenX;
+            handleGesture();
+        }, {passive: true});
 
     </script>
 </body>
