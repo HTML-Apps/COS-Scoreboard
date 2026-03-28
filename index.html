@@ -47,52 +47,15 @@
         h1 { margin: 0; font-size: 24px; color: var(--primary-color); }
         .theme-toggle { background: none; border: none; font-size: 24px; cursor: pointer; color: var(--text-color); }
 
-
-
-
-
-        /* --- TABS (Buttons bleiben gleich) --- */
+        /* --- TABS --- */
         .tabs { display: flex; gap: 10px; margin-bottom: 20px; }
         .tab-btn { 
             flex: 1; padding: 10px; border: 1px solid var(--border-color); background: var(--surface-color); 
             color: var(--text-color); border-radius: 8px; cursor: pointer; font-weight: bold; transition: 0.2s;
         }
         .tab-btn.active { background: var(--primary-color); color: white; border-color: var(--primary-color); }
-
-        /* --- NEU: SLIDER LOGIK --- */
-        
-        /* Das Sichtfenster (Viewport) */
-        .tabs-content-viewport {
-            width: 100%;
-            overflow: hidden; /* Versteckt alles, was außerhalb des aktuellen Tabs liegt */
-            position: relative;
-        }
-
-        /* Der Wrapper, der alle 4 Tabs nebeneinander hält */
-        .tabs-content-wrapper {
-            display: flex;
-            width: 400%; /* 4 Tabs à 100% Breite */
-            transition: transform 0.4s cubic-bezier(0.25, 1, 0.5, 1); /* Sanfte, hochwertige Animation */
-            will-change: transform;
-        }
-
-        /* Ein einzelner Tab-Inhalt */
-        .tab-content {
-            width: 25%; /* Nimmt genau 100% des Viewports ein */
-            flex-shrink: 0;
-            padding-top: 5px;
-            /* Kein display:none mehr, da alle gleichzeitig existieren müssen! */
-        }
-
-        /* Steuerung der Position über das data-Attribut am Body oder App-Container */
-        [data-tab-index="0"] .tabs-content-wrapper { transform: translateX(0%); }
-        [data-tab-index="1"] .tabs-content-wrapper { transform: translateX(-25%); }
-        [data-tab-index="2"] .tabs-content-wrapper { transform: translateX(-50%); }
-        [data-tab-index="3"] .tabs-content-wrapper { transform: translateX(-75%); }
-
-
-
-
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
 
         /* --- FORMS & UI --- */
         .form-group { margin-bottom: 15px; }
@@ -348,28 +311,23 @@
            3. NAVIGATION & UI
            ========================================= */
         window.switchTab = function(tab, event) {
-            // 1. Aktiven Button setzen
             document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
             if(event) event.target.classList.add('active');
-
-            // 2. Den Wrapper an die richtige Position schieben
-            const wrapper = document.getElementById('tabsWrapper');
-            const tabOrder = ['kaffee', 'espresso', 'personal', 'team'];
-            const index = tabOrder.indexOf(tab);
-            
-            // Wir nutzen die CSS-Klassen aus Schritt 1
-            document.getElementById('app').setAttribute('data-tab-index', index);
-
-            // 3. Daten laden (Logik bleibt fast gleich)
+    
             if(tab === 'team' || tab === 'personal') {
-                loadLeaderboardData(tab); 
+                document.getElementById('ratingSection').style.display = 'none';
+                document.getElementById('teamSection').style.display = 'block';
+                // Überschrift anpassen
+                document.querySelector('#teamSection h2').innerText = tab === 'team' ? '🏆 Team-Bestenliste' : '🏆 Meine Favoriten';
+                
+                loadLeaderboardData(tab); // Aufruf der neuen Funktion
             } else {
+                document.getElementById('ratingSection').style.display = 'block';
+                document.getElementById('teamSection').style.display = 'none';
                 currentType = tab === 'kaffee' ? 'Kaffee' : 'Espresso';
-                // WICHTIG: Wir müssen das Label und Dropdown im KORREKTEN Tab finden
-                const currentTabContent = document.getElementById(`${tab}Content`);
-                currentTabContent.querySelector('#typeLabel').innerText = `${currentType}sorte auswählen:`;
-                fetchVarieties(tab); // fetchVarieties muss angepasst werden, um den Tab-Namen zu übernehmen
-                resetForm(); // Formular leeren (Sterne etc.)
+                document.getElementById('typeLabel').innerText = `${currentType}sorte auswählen:`;
+                fetchVarieties();
+                resetForm();
             }
         };
     
