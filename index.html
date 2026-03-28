@@ -10,7 +10,7 @@
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        /* --- CSS VARIABLES & THEMES --- */
+        /* --- CSS VARIABLES & THEMES OmSPwCQUtVDnCcNp https://supabase.com/dashboard/project/qmgmvweupxffxexlovir/database/functions--- */
         :root {
             --bg-color: #f4f4f9;
             --surface-color: #ffffff;
@@ -39,15 +39,11 @@
             display: flex; justify-content: center; transition: background-color 0.3s;
         }
         
-        /* App Container */
         #app { 
-            width: 100%; min-height: 100vh; background-color: var(--surface-color); padding: 20px; box-shadow: 0 0 15px rgba(0,0,0,0.1); 
-            overflow-x: hidden; /* Verhindert horizontales Wackeln bei der Slide-Animation */
-            touch-action: pan-y; 
-            user-select: none;   
+            width: 100%; min-height: 100vh; background-color: var(--surface-color); padding: 20px; 
+            box-shadow: 0 0 15px rgba(0,0,0,0.1); overflow-x: hidden; touch-action: pan-y; 
         }
 
-        /* --- HEADER --- */
         header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; padding-bottom: 10px; }
         h1 { margin: 0; font-size: 24px; color: var(--primary-color); }
         .theme-toggle { background: none; border: none; font-size: 24px; cursor: pointer; color: var(--text-color); }
@@ -57,12 +53,29 @@
         .tab-btn { 
             flex: 1; padding: 10px; border: 1px solid var(--border-color); background: var(--surface-color); 
             color: var(--text-color); border-radius: 8px; cursor: pointer; font-weight: bold; transition: 0.2s;
+            font-size: 13px;
         }
         .tab-btn.active { background: var(--primary-color); color: white; border-color: var(--primary-color); }
-        .tab-content { display: none; }
-        .tab-content.active { display: block; }
+        
+        /* Animation Classes */
+        .slide-in-right { animation: slideInRight 0.3s forwards ease-out; }
+        .slide-in-left { animation: slideInLeft 0.3s forwards ease-out; }
+        .fade-in { animation: fadeIn 0.3s forwards ease-out; }
 
-        /* --- FORMS & UI --- */
+        @keyframes slideInRight {
+            0% { transform: translateX(20px); opacity: 0; }
+            100% { transform: translateX(0); opacity: 1; }
+        }
+        @keyframes slideInLeft {
+            0% { transform: translateX(-20px); opacity: 0; }
+            100% { transform: translateX(0); opacity: 1; }
+        }
+        @keyframes fadeIn {
+            0% { opacity: 0; }
+            100% { opacity: 1; }
+        }
+
+        /* --- UI ELEMENTS --- */
         .form-group { margin-bottom: 15px; }
         label { display: block; margin-bottom: 5px; font-weight: bold; font-size: 14px; }
         select, input, textarea { 
@@ -88,58 +101,36 @@
         .modal { background: var(--surface-color); padding: 15px; border-radius: 12px; width: 90%; max-width: 400px; text-align: center; }
         .d-none { display: none !important; }
 
-        #willkommen { top: 80px; position: absolute;}
-        #verstanden { top: 80px; position: absolute;}
-        
-        /* --- TEAM TAB --- */
-        .leaderboard-item { display: flex; justify-content: space-between; padding-top: 15px; padding-bottom: 15px; border-bottom: 1px solid var(--border-color); }
-        .leaderboard-item:last-child { border-bottom: none; }
+        /* --- LISTS --- */
+        .leaderboard-item { display: flex; justify-content: space-between; padding: 15px 0; border-bottom: 1px solid var(--border-color); }
         .rank { font-weight: bold; color: var(--primary-color); margin-right: 15px; }
-
-        /* --- ANIMATIONS --- */
-        .slide-in-right { animation: slideInRight 0.3s forwards ease-out; }
-        .slide-in-left { animation: slideInLeft 0.3s forwards ease-out; }
-        .fade-in { animation: fadeIn 0.3s forwards ease-out; }
-
-        @keyframes slideInRight {
-            0% { transform: translateX(30%); opacity: 0; }
-            100% { transform: translateX(0); opacity: 1; }
-        }
-        @keyframes slideInLeft {
-            0% { transform: translateX(-30%); opacity: 0; }
-            100% { transform: translateX(0); opacity: 1; }
-        }
-        @keyframes fadeIn {
-            0% { opacity: 0; }
-            100% { opacity: 1; }
-        }
     </style>
 </head>
 <body>
 
     <div id="loginModal" class="modal-overlay d-none">
-        <div id="willkommen" class="modal">
-            <h2>Willkommen beim COS-Scoreboard! ☕</h2>
-            <p>Bitte suche dir einmalig einen Nutzernamen aus oder gebe deinen Nutzernamen ein.</p>
+        <div class="modal">
+            <h2>Willkommen! ☕</h2>
+            <p>Bitte gib deinen Nutzernamen ein.</p>
             <input type="text" id="usernameInput" placeholder="Dein Name..." style="margin-bottom: 15px;">
             <button class="primary" onclick="saveUsername()">Los geht's</button>
         </div>
     </div>
 
     <div id="hintModal" class="modal-overlay d-none">
-        <div id="verstanden" class="modal" style="text-align: left;">
+        <div class="modal" style="text-align: left;">
             <h2 style="text-align: center;">So funktioniert's:</h2>
-                <p><strong>Schritt 1:</strong> Wähle im Reiter "Kaffee" oder "Espresso" zur Bewertung.</p>
-                <p><strong>Schritt 2:</strong> Wähle eine Sorte aus dem Dropdown oder füge eine neue "+" hinzu.</p>
-                <p><strong>Schritt 3:</strong> Sterne vergeben (Stärke, Geschmack, Aroma etc.) & speichern.</p>
-                <p><strong>Schritt 4:</strong> Checke das Team-Ranking im Reiter "Team" oder deine persönlichen Knaller unter "Favoriten"!</p>
+            <p><strong>1.</strong> Wähle Kaffee oder Espresso.<br>
+               <strong>2.</strong> Sorte wählen oder mit "+" neu anlegen.<br>
+               <strong>3.</strong> Sterne vergeben & speichern.<br>
+               <strong>4.</strong> Check das Team-Ranking!</p>
             <button class="primary" onclick="closeHint()">Verstanden 🤌🏻</button>
         </div>
     </div>
 
     <div id="notesModal" class="modal-overlay d-none">
         <div class="modal" style="text-align: left; max-height: 80vh; display: flex; flex-direction: column;">
-            <h2 id="notesModalTitle" style="text-align: center; margin-top: 0;">Kommentare</h2>
+            <h2 id="notesModalTitle" style="text-align: center;">Kommentare</h2>
             <div id="notesModalContent" style="overflow-y: auto; flex: 1; margin-bottom: 15px;"></div>
             <button class="primary" onclick="closeNotesModal()">Schließen</button>
         </div>
@@ -165,173 +156,124 @@
                     <select id="varietySelect" onchange="checkExistingRating()" style="flex: 1;">
                         <option value="">Lade Sorten...</option>
                     </select>
-                    <button onclick="addNewVarietyViaPrompt()" style="padding: 0 15px; border-radius: 8px; border: 1px solid var(--border-color); background: var(--surface-color); color: var(--text-color); cursor: pointer; font-weight: bold; line-height: 1;">➕</button>
+                    <button onclick="addNewVarietyViaPrompt()" style="padding: 0 15px; border-radius: 8px; border: 1px solid var(--border-color); background: var(--surface-color); color: var(--text-color); font-weight: bold;">➕</button>
                 </div>
             </div>
             
             <div id="starContainer"></div>
 
             <div class="form-group">
-                <textarea style="height: 70px;" id="notesInput" rows="3" placeholder="Kommentar..."></textarea>
+                <textarea id="notesInput" rows="3" placeholder="Dein Kommentar zur Sorte..."></textarea>
             </div>
 
             <div class="overall-score" id="overallScoreDisplay">Gesamtbewertung: 0.0 / 5.0</div>
-
             <button class="primary" onclick="saveRating()">Bewertung speichern</button>
         </div>
 
-        <div id="teamSection" class="tab-content">
-            <h2>Bestenliste</h2>
-            <div id="leaderboardContainer">
-                <p>Lade Team-Daten...</p>
-            </div>
+        <div id="teamSection" style="display: none;">
+            <h2 id="teamSectionTitle">Bestenliste</h2>
+            <div id="leaderboardContainer"></div>
         </div>
     </div>
 
     <script>
-        /* =========================================
-           1. INITIALISIERUNG & SETUP
-           ========================================= */
-        
+        // SUPABASE SETUP
         const S_URL = 'https://qmgmvweupxffxexlovir.supabase.co';
         const S_KEY = 'sb_publishable_efpVSR2dJIB6qZsa-sWuLw_AbBae7cs';
         const sb = window.supabase.createClient(S_URL, S_KEY);
-    
+
         let currentUser = localStorage.getItem('username');
         let currentUserId = localStorage.getItem('userId');
-
         let currentTheme = localStorage.getItem('theme') || 'light';
-        let currentType = 'Kaffee'; 
+        let currentType = 'Kaffee';
+        let currentRatingDbId = null;
         
-        let currentRating = { strength: 0, taste: 0, aroma: 0, mundgefühl: 0, acidity: 0, aftertaste: 0 };
-        let currentRatingDbId = null; 
-
-        // Reihenfolge der Tabs für die Wisch- und Animationslogik
         const tabOrder = ['kaffee', 'espresso', 'personal', 'team'];
         let currentTabIndex = 0;
 
+        let currentRating = { strength: 0, taste: 0, aroma: 0, mundgefühl: 0, acidity: 0, aftertaste: 0 };
         const categories = [
-            { id: 'strength', label: 'Stärke' },
-            { id: 'taste', label: 'Geschmack' },
-            { id: 'aroma', label: 'Aroma' },
-            { id: 'mundgefühl', label: 'Mundgefühl' },
-            { id: 'acidity', label: 'Säure' },
-            { id: 'aftertaste', label: 'Nachgeschmack' }
+            { id: 'strength', label: 'Stärke' }, { id: 'taste', label: 'Geschmack' },
+            { id: 'aroma', label: 'Aroma' }, { id: 'mundgefühl', label: 'Mundgefühl' },
+            { id: 'acidity', label: 'Säure' }, { id: 'aftertaste', label: 'Nachgeschmack' }
         ];
-    
+
         window.onload = () => {
             applyTheme(currentTheme);
             checkOnboarding();
             buildStarUI();
             fetchVarieties();
         };
-    
-        /* =========================================
-           2. THEME & ONBOARDING
-           ========================================= */
+
+        /* --- THEME & ONBOARDING --- */
         function toggleTheme() {
             currentTheme = currentTheme === 'light' ? 'dark' : 'light';
             applyTheme(currentTheme);
             localStorage.setItem('theme', currentTheme);
         }
-    
         function applyTheme(theme) {
-            if(theme === 'dark') {
-                document.body.setAttribute('data-theme', 'dark');
-                document.getElementById('themeIcon').innerText = '🌤️';
-            } else {
-                document.body.removeAttribute('data-theme');
-                document.getElementById('themeIcon').innerText = '🌤️';
-            }
+            document.body.setAttribute('data-theme', theme);
+            document.getElementById('themeIcon').innerText = '🌤️';
         }
-    
         function checkOnboarding() {
-            if (!currentUser) {
-                document.getElementById('loginModal').classList.remove('d-none');
-            } else if (!localStorage.getItem('hintsSeen')) {
-                document.getElementById('hintModal').classList.remove('d-none');
-            }
+            if (!currentUser) document.getElementById('loginModal').classList.remove('d-none');
+            else if (!localStorage.getItem('hintsSeen')) document.getElementById('hintModal').classList.remove('d-none');
         }
-    
         async function saveUsername() {
             const name = document.getElementById('usernameInput').value.trim();
-            if (!name) return alert("Bitte gib einen Namen ein.");
-
-            const { data: existingUser, error: fetchError } = await sb
-                .from('profiles').select('id, username').eq('username', name).maybeSingle();
-
-            if (fetchError) return alert("Fehler bei der Verbindung zur Datenbank.");
-
-            if (existingUser) {
-                currentUser = existingUser.username;
-                currentUserId = existingUser.id;
+            if (!name) return;
+            const { data: user } = await sb.from('profiles').select('*').eq('username', name).maybeSingle();
+            if (user) {
+                currentUser = user.username; currentUserId = user.id;
             } else {
-                const { data: newUser, error: insertError } = await sb
-                    .from('profiles').insert([{ username: name }]).select().single();
-
-                if (insertError) return alert("Fehler! Vielleicht hat genau in dieser Sekunde jemand den Namen vergeben.");
-                currentUser = newUser.username;
-                currentUserId = newUser.id;
+                const { data: newUser } = await sb.from('profiles').insert([{ username: name }]).select().single();
+                currentUser = newUser.username; currentUserId = newUser.id;
             }
-
             localStorage.setItem('username', currentUser);
             localStorage.setItem('userId', currentUserId);
             document.getElementById('loginModal').classList.add('d-none');
-            
-            if (!localStorage.getItem('hintsSeen')) {
-                document.getElementById('hintModal').classList.remove('d-none');
-            }
+            checkOnboarding();
         }
-    
         function closeHint() {
             localStorage.setItem('hintsSeen', 'true');
             document.getElementById('hintModal').classList.add('d-none');
         }
-    
-        /* =========================================
-           3. NAVIGATION & UI MIT ANIMATION
-           ========================================= */
-        window.switchTab = function(tab, event) {
-            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-            if(event) event.target.classList.add('active');
 
-            // Richtungslogik für Animation berechnen
-            let targetIndex = tabOrder.indexOf(tab);
-            let animClass = 'fade-in'; 
+        /* --- TABS & ANIMATION --- */
+        function switchTab(tab, event) {
+            const targetIndex = tabOrder.indexOf(tab);
+            let animClass = 'fade-in';
             if (targetIndex > currentTabIndex) animClass = 'slide-in-right';
             else if (targetIndex < currentTabIndex) animClass = 'slide-in-left';
             currentTabIndex = targetIndex;
 
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            if(event) event.target.classList.add('active');
+
             const ratingSec = document.getElementById('ratingSection');
             const teamSec = document.getElementById('teamSection');
-
-            // Animationen zurücksetzen
-            ratingSec.classList.remove('slide-in-left', 'slide-in-right', 'fade-in');
-            teamSec.classList.remove('slide-in-left', 'slide-in-right', 'fade-in');
             
-            // Browser zwingen, das Entfernen der Klassen zu bemerken (Reflow)
-            void ratingSec.offsetWidth; 
-            void teamSec.offsetWidth;   
+            [ratingSec, teamSec].forEach(el => el.classList.remove('slide-in-left', 'slide-in-right', 'fade-in'));
+            void ratingSec.offsetWidth; // Reflow trigger
 
-            if(tab === 'team' || tab === 'personal') {
+            if (tab === 'team' || tab === 'personal') {
                 ratingSec.style.display = 'none';
                 teamSec.style.display = 'block';
                 teamSec.classList.add(animClass);
-
-                document.querySelector('#teamSection h2').innerText = tab === 'team' ? '🏆 Team-Bestenliste' : '🏆 Meine Favoriten';
-                loadLeaderboardData(tab); 
+                document.getElementById('teamSectionTitle').innerText = tab === 'team' ? '🏆 Team-Bestenliste' : '🏆 Meine Favoriten';
+                loadLeaderboardData(tab);
             } else {
                 ratingSec.style.display = 'block';
                 teamSec.style.display = 'none';
                 ratingSec.classList.add(animClass);
-
                 currentType = tab === 'kaffee' ? 'Kaffee' : 'Espresso';
                 document.getElementById('typeLabel').innerText = `${currentType}sorte auswählen:`;
                 fetchVarieties();
                 resetForm();
             }
-        };
-    
+        }
+
+        /* --- RATING LOGIC --- */
         function buildStarUI() {
             const container = document.getElementById('starContainer');
             container.innerHTML = '';
@@ -352,221 +294,119 @@
                 container.appendChild(row);
             });
         }
-    
         function setRating(category, value, starsDiv) {
             currentRating[category] = value;
-            const stars = starsDiv.children;
-            for(let i=0; i<5; i++) stars[i].classList.toggle('active', i < value);
+            Array.from(starsDiv.children).forEach((s, i) => s.classList.toggle('active', i < value));
             updateOverallScore();
         }
-    
         function updateOverallScore() {
             const values = Object.values(currentRating).filter(v => v > 0);
-            if(values.length === 0) return 0;
-            const avg = (values.reduce((a, b) => a + b, 0) / values.length).toFixed(1);
+            const avg = values.length ? (values.reduce((a, b) => a + b, 0) / values.length).toFixed(1) : "0.0";
             document.getElementById('overallScoreDisplay').innerText = `Gesamtbewertung: ${avg} / 5.0`;
             return avg;
         }
-
         function resetForm() {
-            currentRatingDbId = null; 
+            currentRatingDbId = null;
             currentRating = { strength: 0, taste: 0, aroma: 0, mundgefühl: 0, acidity: 0, aftertaste: 0 };
             document.querySelectorAll('.star').forEach(s => s.classList.remove('active'));
             document.getElementById('overallScoreDisplay').innerText = `Gesamtbewertung: 0.0 / 5.0`;
             document.getElementById('notesInput').value = '';
         }
-    
-        /* =========================================
-           4. DATENBANK AKTIONEN
-           ========================================= */
+
+        /* --- DATABASE ACTIONS --- */
         async function fetchVarieties() {
             const select = document.getElementById('varietySelect');
-            select.innerHTML = '<option>Lade...</option>';
-            const { data, error } = await sb.from('varieties').select('*').eq('type', currentType).order('name', { ascending: true });
-            if (error) return console.error(error);
-    
+            const { data } = await sb.from('varieties').select('*').eq('type', currentType).order('name');
             select.innerHTML = '<option value="" disabled selected>Bitte wählen...</option>';
-            data.forEach(v => {
+            data?.forEach(v => {
                 const opt = document.createElement('option');
                 opt.value = v.id;
-                opt.innerText = `${v.name} ${v.price_per_kg ? '(' + v.price_per_kg + '€/kg)' : ''}`;
+                opt.innerText = `${v.name} ${v.price_per_kg ? '('+v.price_per_kg+'€/kg)' : ''}`;
                 select.appendChild(opt);
             });
         }
-    
         async function addNewVarietyViaPrompt() {
-            const name = prompt(`Neue ${currentType}sorte hinzufügen:\nBitte Namen eingeben:`);
-            if (!name || name.trim() === '') return; 
-
-            let price = prompt("Preis pro kg in € (Optional, z.B. 25.50):");
-            price = price ? parseFloat(price.replace(',', '.')) : null;
-
-            const { data, error } = await sb.from('varieties').insert([{ type: currentType, name: name.trim(), price_per_kg: price }]).select();
-            if (error) alert("Fehler beim Speichern der Sorte!");
-            else fetchVarieties(); 
+            const name = prompt(`Neue ${currentType}sorte:`);
+            if (!name) return;
+            const price = prompt("Preis pro kg (€):");
+            await sb.from('varieties').insert([{ type: currentType, name: name, price_per_kg: price ? parseFloat(price) : null }]);
+            fetchVarieties();
         }
-
         async function checkExistingRating() {
-            const varietyId = document.getElementById('varietySelect').value;
-            if (!varietyId) return resetForm();
-
-            const { data, error } = await sb.from('ratings').select('*').eq('variety_id', varietyId).eq('user_id', currentUserId).maybeSingle();
-
+            const vId = document.getElementById('varietySelect').value;
+            const { data } = await sb.from('ratings').select('*').eq('variety_id', vId).eq('user_id', currentUserId).maybeSingle();
             if (data) {
-                currentRatingDbId = data.id; 
-                currentRating = { 
-                    strength: data.strength, taste: data.taste, aroma: data.aroma, 
-                    mundgefühl: data.mundgefühl, acidity: data.acidity, aftertaste: data.aftertaste 
-                };
+                currentRatingDbId = data.id;
+                currentRating = { strength: data.strength, taste: data.taste, aroma: data.aroma, mundgefühl: data.mundgefühl, acidity: data.acidity, aftertaste: data.aftertaste };
                 document.getElementById('notesInput').value = data.notes || '';
-                
+                // Update Stars UI
                 const rows = document.getElementById('starContainer').children;
-                categories.forEach((cat, index) => {
-                    const starsDiv = rows[index].querySelector('.stars');
-                    const val = currentRating[cat.id];
-                    Array.from(starsDiv.children).forEach((star, i) => {
-                        star.classList.toggle('active', i < val);
-                    });
+                categories.forEach((cat, idx) => {
+                    const stars = rows[idx].querySelector('.stars').children;
+                    for(let i=0; i<5; i++) stars[i].classList.toggle('active', i < currentRating[cat.id]);
                 });
                 updateOverallScore();
-            } else {
-                resetForm();
-            }
+            } else resetForm();
         }
-    
         async function saveRating() {
-            const varietyId = document.getElementById('varietySelect').value;
+            const vId = document.getElementById('varietySelect').value;
             const overall = updateOverallScore();
-            if(!varietyId || overall == 0) return alert("Daten unvollständig!");
-    
-            const payload = {
-                variety_id: varietyId,
-                username: currentUser,
-                user_id: currentUserId,
-                strength: currentRating.strength,
-                taste: currentRating.taste,
-                aroma: currentRating.aroma,
-                mundgefühl: currentRating.mundgefühl,
-                acidity: currentRating.acidity,
-                aftertaste: currentRating.aftertaste,
-                overall: parseFloat(overall),
-                notes: document.getElementById('notesInput').value
-            };
-
-            let error;
-            if (currentRatingDbId) {
-                const res = await sb.from('ratings').update(payload).eq('id', currentRatingDbId);
-                error = res.error;
-            } else {
-                const res = await sb.from('ratings').insert([payload]);
-                error = res.error;
-            }
-    
-            if (error) {
-                console.error(error);
-                alert("Fehler beim Speichern!");
-            } else {
-                alert(currentRatingDbId ? "Bewertung aktualisiert!" : "Bewertung gesichert!");
-                checkExistingRating(); 
-            }
+            if (!vId || overall == 0) return alert("Bitte Sorte wählen und Sterne vergeben!");
+            const payload = { ...currentRating, variety_id: vId, username: currentUser, user_id: currentUserId, overall: parseFloat(overall), notes: document.getElementById('notesInput').value };
+            const { error } = currentRatingDbId ? await sb.from('ratings').update(payload).eq('id', currentRatingDbId) : await sb.from('ratings').insert([payload]);
+            if (error) alert("Fehler!"); else alert("Gespeichert!");
         }
 
-        async function openNotesModal(varietyId, varietyName) {
-            document.getElementById('notesModalTitle').innerText = varietyName;
-            const content = document.getElementById('notesModalContent');
-            content.innerHTML = '<p style="text-align:center;">Lade Kommentare...</p>';
-            document.getElementById('notesModal').classList.remove('d-none');
-
-            const { data, error } = await sb.from('ratings').select('username, notes, overall')
-                .eq('variety_id', varietyId).neq('notes', '').not('notes', 'is', null).order('overall', { ascending: false }); 
-
-            if (error) return content.innerHTML = '<p style="text-align:center; color:red;">Fehler beim Laden.</p>';
-            if (!data || data.length === 0) return content.innerHTML = '<p style="text-align:center;">Noch keine Kommentare zu dieser Sorte vorhanden.</p>';
-
-            let html = '';
-            data.forEach(rating => {
-                html += `
-                    <div style="margin-bottom: 10px; padding: 12px; background: var(--bg-color); border: 1px solid var(--border-color); border-radius: 8px;">
-                        <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
-                            <strong>${rating.username || 'Unbekannt'}</strong>
-                            <span style="color: var(--star-active); font-weight: bold;">★ ${rating.overall}</span>
-                        </div>
-                        <div style="font-size: 14px; color: var(--text-color); white-space: pre-wrap;">${rating.notes}</div>
-                    </div>`;
-            });
-            content.innerHTML = html;
-        }
-
-        function closeNotesModal() {
-            document.getElementById('notesModal').classList.add('d-none');
-        }
-    
+        /* --- LEADERBOARD & NOTES --- */
         async function loadLeaderboardData(mode) {
             const container = document.getElementById('leaderboardContainer');
-            container.innerHTML = '<p>Lade Daten...</p>';
-
-            const { data: varieties } = await sb.from('varieties').select('id, name, type');
-            
-            let query = sb.from('ratings').select('variety_id, overall');
+            container.innerHTML = '<p>Lade...</p>';
+            const { data: varieties } = await sb.from('varieties').select('*');
+            let query = sb.from('ratings').select('*');
             if (mode === 'personal') query = query.eq('user_id', currentUserId);
-            
             const { data: ratings } = await query;
-            if(!varieties || !ratings) return;
-    
+
             let ranking = varieties.map(v => {
                 const vRatings = ratings.filter(r => r.variety_id === v.id);
-                if(vRatings.length === 0) return null;
-                const avg = vRatings.reduce((a, b) => a + Number(b.overall), 0) / vRatings.length;
-                return { id: v.id, name: v.name, type: v.type, avg: avg, count: vRatings.length };
+                if (!vRatings.length) return null;
+                const avg = vRatings.reduce((a, b) => a + b.overall, 0) / vRatings.length;
+                return { ...v, avg, count: vRatings.length };
             }).filter(x => x).sort((a, b) => b.avg - a.avg);
-    
-            container.innerHTML = ranking.length ? '' : '<p>Noch keine Daten...</p>';
+
+            container.innerHTML = ranking.length ? '' : '<p>Noch keine Bewertungen.</p>';
             ranking.forEach((item, i) => {
-                const typeIcon = item.type === 'Kaffee' ? '☕ Kaffee' : '🍵 Espresso';
                 container.innerHTML += `
-                    <div class="leaderboard-item" onclick="openNotesModal('${item.id}', '${item.name}')" style="flex-direction: column; gap: 5px; cursor: pointer;">
-                        <div style="display: flex; justify-content: space-between;">
-                            <div><span class="rank">#${i+1}</span><strong>${item.name}</strong></div>
-                            <div style="color:var(--star-active); font-weight: bold;">★ ${item.avg.toFixed(1)}</div>
-                        </div>
-                        <div style="font-size: 12px; color: var(--text-muted);">
-                            ${typeIcon} ${mode === 'team' ? `&bull; ${item.count} Bewertung(en)` : ''}
-                        </div>
+                    <div class="leaderboard-item" onclick="openNotesModal('${item.id}', '${item.name}')">
+                        <div><span class="rank">#${i+1}</span><strong>${item.name}</strong><br><small>${item.type}</small></div>
+                        <div style="text-align:right"><span style="color:var(--star-active)">★ ${item.avg.toFixed(1)}</span><br><small>${item.count} Rez.</small></div>
                     </div>`;
             });
         }
+        async function openNotesModal(vId, vName) {
+            document.getElementById('notesModalTitle').innerText = vName;
+            document.getElementById('notesModal').classList.remove('d-none');
+            const { data } = await sb.from('ratings').select('*').eq('variety_id', vId).neq('notes', '');
+            const content = document.getElementById('notesModalContent');
+            content.innerHTML = data?.length ? data.map(r => `<div style="padding:10px; background:var(--bg-color); border-radius:8px; margin-bottom:10px;"><strong>${r.username} (★${r.overall})</strong><br>${r.notes}</div>`).join('') : '<p>Keine Kommentare.</p>';
+        }
+        function closeNotesModal() { document.getElementById('notesModal').classList.add('d-none'); }
 
-        /* =========================================
-        5. SWIPE-GESTEN FÜR TABS
-        ========================================= */
+        /* --- SWIPE GESTURES --- */
         let touchstartX = 0;
         let touchendX = 0;
-
         function handleGesture() {
-            const swipeThreshold = 70; 
             const diff = touchendX - touchstartX;
-
-            if (diff < -swipeThreshold) {
-                if (currentTabIndex < tabOrder.length - 1) {
-                    const nextTab = tabOrder[currentTabIndex + 1];
-                    const nextBtn = document.querySelectorAll('.tab-btn')[currentTabIndex + 1];
-                    switchTab(nextTab, { target: nextBtn });
-                }
-            }
-
-            if (diff > swipeThreshold) {
-                if (currentTabIndex > 0) {
-                    const prevTab = tabOrder[currentTabIndex - 1];
-                    const prevBtn = document.querySelectorAll('.tab-btn')[currentTabIndex - 1];
-                    switchTab(prevTab, { target: prevBtn });
-                }
+            if (Math.abs(diff) < 60) return;
+            if (diff < 0 && currentTabIndex < tabOrder.length - 1) {
+                const nextBtn = document.querySelectorAll('.tab-btn')[currentTabIndex + 1];
+                switchTab(tabOrder[currentTabIndex + 1], { target: nextBtn });
+            } else if (diff > 0 && currentTabIndex > 0) {
+                const prevBtn = document.querySelectorAll('.tab-btn')[currentTabIndex - 1];
+                switchTab(tabOrder[currentTabIndex - 1], { target: prevBtn });
             }
         }
-
-        const appContainer = document.getElementById('app');
-        appContainer.addEventListener('touchstart', e => { touchstartX = e.changedTouches[0].screenX; }, {passive: true});
-        appContainer.addEventListener('touchend', e => { touchendX = e.changedTouches[0].screenX; handleGesture(); }, {passive: true});
-
+        document.getElementById('app').addEventListener('touchstart', e => touchstartX = e.changedTouches[0].screenX, {passive: true});
+        document.getElementById('app').addEventListener('touchend', e => { touchendX = e.changedTouches[0].screenX; handleGesture(); }, {passive: true});
     </script>
 </body>
 </html>
