@@ -504,7 +504,7 @@
                 return { name: v.name, type: v.type, avg: avg, count: vRatings.length };
             }).filter(x => x).sort((a, b) => b.avg - a.avg);
     
-            container.innerHTML = ranking.length ? '' : '<p>Noch keine Daten.</p>';
+            container.innerHTML = ranking.length ? '' : '<p>Noch keine Daten...</p>';
             ranking.forEach((item, i) => {
                 // Kaffee / Espresso Tag Icon generieren
                 const typeIcon = item.type === 'Kaffee' ? '☕ Kaffee' : '🥤 Espresso';
