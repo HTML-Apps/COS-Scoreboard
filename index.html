@@ -137,7 +137,7 @@
 
     <div id="app">
         <header>
-            <h1>☰ Hallo Hendrik</h1>
+            <h1 id="greetingHeader">☰ Hallo</h1>
             <button class="theme-toggle" onclick="toggleTheme()" id="themeIcon">🔦</button>
         </header>
 
@@ -158,8 +158,6 @@
                     <button onclick="addNewVarietyViaPrompt()" style="padding: 0 15px; border-radius: 8px; border: 1px solid var(--border-color); background: var(--surface-color); color: var(--text-color); cursor: pointer; font-weight: bold; line-height: 1;">➕</button>
                 </div>
             </div>
-            
-            
 
             <div id="starContainer"></div>
 
@@ -215,6 +213,7 @@
             checkOnboarding();
             buildStarUI();
             fetchVarieties();
+            updateGreeting();
         };
     
         /* =========================================
@@ -292,6 +291,8 @@
             // 2. Daten lokal im Browser speichern, damit der User eingeloggt bleibt
             localStorage.setItem('username', currentUser);
             localStorage.setItem('userId', currentUserId);
+
+            updateGreeting();
 
             // 3. UI updaten (Modals umschalten)
             document.getElementById('loginModal').classList.add('d-none');
@@ -623,6 +624,15 @@
                     const prevBtn = document.querySelectorAll('.tab-btn')[currentIndex - 1];
                     switchTab(prevTab, { target: prevBtn });
                 }
+            }
+        }
+
+        function updateGreeting() {
+            const headerElement = document.getElementById('greetingHeader');
+            if (currentUser) {
+                headerElement.innerText = `☰ Hallo ${currentUser}`;
+            } else {
+                headerElement.innerText = `☰ Hallo`;
             }
         }
 
