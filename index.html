@@ -139,7 +139,7 @@
     <div id="app">
         <header>
             <h1>COS-Scoreboard</h1>
-            <button class="theme-toggle" onclick="toggleTheme()" id="themeIcon">🌤️</button>
+            <button class="theme-toggle" onclick="toggleTheme()" id="themeIcon">💡</button>
         </header>
 
         <div class="tabs">
@@ -213,7 +213,7 @@
         }
         function applyTheme(theme) {
             document.body.setAttribute('data-theme', theme);
-            document.getElementById('themeIcon').innerText = '🌤️';
+            document.getElementById('themeIcon').innerText = '💡';
         }
         function checkOnboarding() {
             if (!currentUser) document.getElementById('loginModal').classList.remove('d-none');
