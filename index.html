@@ -78,6 +78,14 @@
         .star.active { color: var(--star-active); }
         .overall-score { font-size: 18px; font-weight: bold; color: var(--primary-color); text-align: center; margin: 15px 0; }
 
+        /* --- FILTER TAGS (Bestenliste) --- */
+        .filter-tags { display: flex; gap: 8px; margin-bottom: 15px; }
+        .filter-btn {
+            padding: 6px 14px; border: 1px solid var(--border-color); border-radius: 20px;
+            background: var(--bg-color); color: var(--text-color); cursor: pointer; font-size: 13px; font-weight: bold; transition: 0.2s;
+        }
+        .filter-btn.active { background: var(--primary-color); color: white; border-color: var(--primary-color); }
+
         /* --- MODALS (Overlays) --- */
         .modal-overlay { 
             position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.7); 
@@ -177,6 +185,20 @@
                 <p>Lade Team-Daten...</p>
             </div>
         </div>
+
+        <div id="teamSection" class="tab-content">
+            <h2>Bestenliste</h2>
+            
+            <div class="filter-tags" id="leaderboardFilters">
+                <button class="filter-btn active" onclick="filterLeaderboard('Alle', event)">Alle</button>
+                <button class="filter-btn" onclick="filterLeaderboard('Kaffee', event)">Kaffee</button>
+                <button class="filter-btn" onclick="filterLeaderboard('Espresso', event)">Espresso</button>
+            </div>
+            <div id="leaderboardContainer">
+                <p>Lade Team-Daten...</p>
+            </div>
+        </div>
+
     </div>
 
     <script>
@@ -196,6 +218,9 @@
 
         let currentTheme = localStorage.getItem('theme') || 'light';
         let currentType = 'Kaffee'; 
+
+        let currentLeaderboardMode = 'team';   // Merkt sich, ob wir "team" oder "personal" sehen
+        let currentLeaderboardFilter = 'Alle'; // Merkt sich den aktiven Filter
         
         let currentRating = { strength: 0, taste: 0, aroma: 0, mundgefühl: 0, acidity: 0, aftertaste: 0 };
         let currentRatingDbId = null; // Speichert die ID einer bereits existierenden Bewertung
@@ -321,8 +346,10 @@
                 document.getElementById('teamSection').style.display = 'block';
                 // Überschrift anpassen
                 document.querySelector('#teamSection h2').innerText = tab === 'team' ? '🏆 Team-Bestenliste' : '🏆 Meine Favoriten';
-                
+
+                currentLeaderboardMode = tab;
                 loadLeaderboardData(tab); // Aufruf der neuen Funktion
+                
             } else {
                 document.getElementById('ratingSection').style.display = 'block';
                 document.getElementById('teamSection').style.display = 'none';
