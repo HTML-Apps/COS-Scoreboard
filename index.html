@@ -596,14 +596,25 @@
     
             if(!varieties || !ratings) return;
     
+            // 1. Liste aufbauen und sortieren
             let ranking = varieties.map(v => {
                 const vRatings = ratings.filter(r => r.variety_id === v.id);
                 if(vRatings.length === 0) return null;
                 const avg = vRatings.reduce((a, b) => a + Number(b.overall), 0) / vRatings.length;
                 return { id: v.id, name: v.name, type: v.type, avg: avg, count: vRatings.length };
             }).filter(x => x).sort((a, b) => b.avg - a.avg);
+
+            // ---------------------------------------------------------
+            // 2. NEU: Liste nach dem aktiven Tag filtern
+            // ---------------------------------------------------------
+            if (currentLeaderboardFilter !== 'Alle') {
+                ranking = ranking.filter(item => item.type === currentLeaderboardFilter);
+            }
+            // ---------------------------------------------------------
     
-            container.innerHTML = ranking.length ? '' : '<p>Noch keine Daten...</p>';
+            // 3. Liste auf dem Bildschirm ausgeben
+            container.innerHTML = ranking.length ? '' : '<p>Noch keine Daten in dieser Kategorie...</p>';
+            
             ranking.forEach((item, i) => {
                 // Kaffee / Espresso Tag Icon generieren
                 const typeIcon = item.type === 'Kaffee' ? '☕ Kaffee' : '🍵 Espresso';
