@@ -144,9 +144,18 @@
         </div>
     </div>
 
+    <div id="infoModal" class="modal-overlay d-none">
+        <div class="modal" style="text-align: left; max-height: 80vh; display: flex; flex-direction: column;">
+            <h2 style="text-align: center; margin-top: 0;">App Info ℹ️</h2>
+            <div id="infoModalContent" style="overflow-y: auto; flex: 1; margin-bottom: 15px;">
+                </div>
+            <button class="primary" onclick="closeInfoModal()">Schließen</button>
+        </div>
+    </div>
+
     <div id="app">
         <header>
-            <h1 id="greetingHeader">≡ Hallo</h1>
+            <h1 id="greetingHeader" onclick="openInfoModal()" style="cursor: pointer; display: inline-block;">≡ Hallo</h1>
             <button class="theme-toggle" onclick="toggleTheme()" id="themeIcon">☕</button>
         </header>
 
@@ -630,6 +639,89 @@
                         </div>
                     </div>`;
             });
+        }
+
+        /* =========================================
+           NEU: INFO MODAL (Team & Letzte Bearbeitung)
+           ========================================= */
+
+        // Hilfsfunktion: Formatiert den Supabase-Timestamp in "So. 03.03.2026 14:30 Uhr"
+        function formatTimestamp(isoString) {
+            if (!isoString) return '';
+            const date = new Date(isoString);
+            
+            const days = ['So.', 'Mo.', 'Di.', 'Mi.', 'Do.', 'Fr.', 'Sa.'];
+            const dayName = days[date.getDay()];
+            
+            const d = String(date.getDate()).padStart(2, '0');
+            const m = String(date.getMonth() + 1).padStart(2, '0');
+            const y = date.getFullYear();
+            
+            const hrs = String(date.getHours()).padStart(2, '0');
+            const mins = String(date.getMinutes()).padStart(2, '0');
+            
+            return `${dayName} ${d}.${m}.${y} ${hrs}:${mins} Uhr`;
+        }
+
+        async function openInfoModal() {
+            // Modal anzeigen und Lade-Text setzen
+            document.getElementById('infoModal').classList.remove('d-none');
+            const content = document.getElementById('infoModalContent');
+            content.innerHTML = '<p style="text-align:center;">Lade Team-Daten...</p>';
+
+            // 1. Alle Nutzer aus der Tabelle 'profiles' laden
+            const { data: profiles, error: profileError } = await sb
+                .from('profiles')
+                .select('username')
+                .order('username', { ascending: true });
+
+            // 2. Letzte Änderung aus der Tabelle 'ratings' laden
+            // Wir sortieren nach created_at absteigend und nehmen nur den ersten Eintrag
+            const { data: lastEdit, error: editError } = await sb
+                .from('ratings')
+                .select('username, created_at')
+                .order('created_at', { ascending: false })
+                .limit(1)
+                .maybeSingle();
+
+            if (profileError) {
+                content.innerHTML = '<p style="text-align:center; color:red;">Fehler beim Laden.</p>';
+                return;
+            }
+
+            // HTML für das Modal zusammenbauen
+            let html = '<h3 style="margin-bottom: 5px;">Team-Mitglieder:</h3>';
+            html += '<ul style="padding-left: 20px; margin-top: 5px;">';
+            
+            if (profiles && profiles.length > 0) {
+                profiles.forEach(p => {
+                    // Den eigenen Namen in der Liste markieren
+                    if(p.username === currentUser) {
+                        html += `<li><strong>${p.username} (Du)</strong></li>`;
+                    } else {
+                        html += `<li>${p.username}</li>`;
+                    }
+                });
+            } else {
+                html += '<li>Keine Nutzer gefunden.</li>';
+            }
+            html += '</ul>';
+
+            // Wenn es eine letzte Bearbeitung gab, den Hinweis dranhängen
+            if (lastEdit && lastEdit.created_at) {
+                const timeString = formatTimestamp(lastEdit.created_at);
+                html += `<hr style="border:0; border-top:1px solid var(--border-color); margin:20px 0 15px 0;">`;
+                html += `<p style="font-size: 13px; color: var(--text-muted); text-align: center; margin: 0;">
+                            zuletzt bearbeitet von: <strong style="color: var(--text-color);">${lastEdit.username}</strong><br>
+                            (${timeString})
+                         </p>`;
+            }
+
+            content.innerHTML = html;
+        }
+
+        function closeInfoModal() {
+            document.getElementById('infoModal').classList.add('d-none');
         }
 
         /* =========================================
