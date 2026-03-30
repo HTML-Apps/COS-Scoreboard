@@ -349,7 +349,7 @@
 
                 currentLeaderboardMode = tab;
                 loadLeaderboardData(tab); // Aufruf der neuen Funktion
-                
+
             } else {
                 document.getElementById('ratingSection').style.display = 'block';
                 document.getElementById('teamSection').style.display = 'none';
@@ -571,6 +571,18 @@
 
         function closeNotesModal() {
             document.getElementById('notesModal').classList.add('d-none');
+        }
+
+        // NEU: Funktion für die Klick-Tags
+        function filterLeaderboard(filter, event) {
+            currentLeaderboardFilter = filter;
+            
+            // Buttons optisch updaten (Klasse 'active' verschieben)
+            document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+            if(event) event.target.classList.add('active');
+            
+            // Liste mit dem aktuellen Modus (Team oder Personal) und neuem Filter neu laden
+            loadLeaderboardData(currentLeaderboardMode);
         }
     
         async function loadLeaderboardData(mode) {
