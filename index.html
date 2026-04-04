@@ -670,22 +670,28 @@
         }
 
         async function openInfoModal() {
-            // Modal anzeigen und Lade-Text setzen
             document.getElementById('infoModal').classList.remove('d-none');
             const content = document.getElementById('infoModalContent');
             content.innerHTML = '<p style="text-align:center;">Lade Team-Daten...</p>';
 
-            // 1. Alle Nutzer aus der Tabelle 'profiles' laden
+            // 1. Alle Nutzer laden
             const { data: profiles, error: profileError } = await sb
                 .from('profiles')
                 .select('username')
                 .order('username', { ascending: true });
 
-            // 2. Letzte Änderung aus der Tabelle 'ratings' laden
-            // Wir sortieren nach created_at absteigend und nehmen nur den ersten Eintrag
-            const { data: lastEdit, error: editError } = await sb
-                .from('ratings' || 'profiles' || 'varieties')
+            // 2. Letztes Rating abrufen
+            const { data: lastRating } = await sb
+                .from('ratings')
                 .select('username, created_at')
+                .order('created_at', { ascending: false })
+                .limit(1)
+                .maybeSingle();
+
+            // 3. Letzte Sorte abrufen
+            const { data: lastVariety } = await sb
+                .from('varieties')
+                .select('username, created_at, name')
                 .order('created_at', { ascending: false })
                 .limit(1)
                 .maybeSingle();
@@ -695,32 +701,38 @@
                 return;
             }
 
-            // HTML für das Modal zusammenbauen
-            let html = '<h3 style="margin-bottom: 5px; margin-top: 0px;">Team-Mitglieder:</h3>';
-            html += '<ul style="padding-left: 20px; margin-top: 5px;">';
-            
-            if (profiles && profiles.length > 0) {
-                profiles.forEach(p => {
-                    // Den eigenen Namen in der Liste markieren
-                    if(p.username === currentUser) {
-                        html += `<li><strong>${p.username} (Du)</strong></li>`;
-                    } else {
-                        html += `<li>${p.username}</li>`;
-                    }
-                });
-            } else {
-                html += '<li>Keine Nutzer gefunden.</li>';
-            }
+            // HTML für Mitglieder-Liste
+            let html = '<h3 style="margin-bottom: 5px; margin-top: 0px;">Team-Mitglieder:</h3><ul style="padding-left: 20px; margin-top: 5px;">';
+            profiles?.forEach(p => {
+                html += p.username === currentUser ? `<li><strong>${p.username} (Du)</strong></li>` : `<li>${p.username}</li>`;
+            });
             html += '</ul>';
 
-            // Wenn es eine letzte Bearbeitung gab, den Hinweis dranhängen
-            if (lastEdit && lastEdit.created_at) {
-                const timeString = formatTimestamp(lastEdit.created_at);
+            // 4. Zeitstempel vergleichen und "Zuletzt aktiv" Logik
+            let finalUser = "";
+            let finalDate = null;
+            let actionText = "zuletzt bearbeitet"; // Standard
+
+            const ratingTime = lastRating ? new Date(lastRating.created_at) : 0;
+            const varietyTime = lastVariety ? new Date(lastVariety.created_at) : 0;
+
+            if (ratingTime > varietyTime) {
+                finalUser = lastRating.username;
+                finalDate = lastRating.created_at;
+                actionText = "Bewertung abgegeben von";
+            } else if (varietyTime > 0) {
+                finalUser = lastVariety.username || "Unbekannt";
+                finalDate = lastVariety.created_at;
+                actionText = `Neue Sorte (${lastVariety.name}) erstellt von`;
+            }
+
+            if (finalDate) {
+                const timeString = formatTimestamp(finalDate);
                 html += `<hr style="border:0; border-top:1px solid var(--border-color); margin:20px 0 15px 0;">`;
-                html += `<p style="font-size: 15px; color: var(--text-muted); text-align: center; margin: 0;">
-                            zuletzt bearbeitet von: <strong style="color: var(--text-color);">${lastEdit.username}</strong><br>
+                html += `<p style="font-size: 14px; color: var(--text-muted); text-align: center; margin: 0;">
+                            ${actionText}: <br><strong style="color: var(--text-color);">${finalUser}</strong><br>
                             (${timeString})
-                         </p>`;
+                        </p>`;
             }
 
             content.innerHTML = html;
