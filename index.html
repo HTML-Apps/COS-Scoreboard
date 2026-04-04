@@ -678,7 +678,7 @@
             // 2. Letzte Änderung aus der Tabelle 'ratings' laden
             // Wir sortieren nach created_at absteigend und nehmen nur den ersten Eintrag
             const { data: lastEdit, error: editError } = await sb
-                .from('ratings')
+                .from('ratings' || 'profiles' || 'varieties')
                 .select('username, created_at')
                 .order('created_at', { ascending: false })
                 .limit(1)
