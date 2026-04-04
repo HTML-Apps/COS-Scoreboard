@@ -432,21 +432,27 @@
     
         async function addNewVarietyViaPrompt() {
             const name = prompt(`Neue ${currentType}sorte hinzufügen:\nBitte Namen eingeben:`);
-            if (!name || name.trim() === '') return; // Abbrechen, wenn nichts eingegeben wurde
+            if (!name || name.trim() === '') return; 
 
             let price = prompt("Preis pro kg in € (Optional, z.B. 25.50):");
-            // Komma in Punkt umwandeln, falls der User ein Komma tippt
             price = price ? parseFloat(price.replace(',', '.')) : null;
 
+            // HIER DIE ÄNDERUNG:
             const { data, error } = await sb
                 .from('varieties')
-                .insert([{ type: currentType, name: name.trim(), price_per_kg: price }])
+                .insert([{ 
+                    type: currentType, 
+                    name: name.trim(), 
+                    price_per_kg: price,
+                    username: currentUser // <--- Übermittelt den Namen des eingeloggten Users
+                }])
                 .select();
 
             if (error) {
+                console.error("Fehler:", error);
                 alert("Fehler beim Speichern der Sorte!");
             } else {
-                fetchVarieties(); // Liste direkt neu laden
+                fetchVarieties(); 
             }
         }
 
