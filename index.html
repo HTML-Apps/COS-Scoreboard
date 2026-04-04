@@ -438,13 +438,14 @@
             price = price ? parseFloat(price.replace(',', '.')) : null;
 
             // HIER DIE ÄNDERUNG:
+            // In addNewVarietyViaPrompt:
             const { data, error } = await sb
                 .from('varieties')
                 .insert([{ 
                     type: currentType, 
                     name: name.trim(), 
                     price_per_kg: price,
-                    username: currentUser // <--- Übermittelt den Namen des eingeloggten Users
+                    username: currentUser // <--- NEU: Speichere den Namen des Erstellers
                 }])
                 .select();
 
